@@ -40,8 +40,10 @@ def get_data():
     session = Session()
     try:
         results=session.execute(sqlalchemy.text("SELECT * FROM test"))
-        print(results)
-        data=[dict(row) for row in results]
+        data = []
+        for row in results:
+            row_dict = {column:value for column,value in row.items()}
+            data.append(row_dict)
         print(data)
         session.close()
         return jsonify(data)
