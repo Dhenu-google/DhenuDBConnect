@@ -42,7 +42,7 @@ def get_data():
         results=session.execute(sqlalchemy.text("SELECT * FROM test"))
         data = []
         for row in results:
-            row_dict = {column:getattr(row,column) for column in row.items()}
+            row_dict = {column:getattr(row,column) for column in row.keys()}
             data.append(row_dict)
         print(data)
         session.close()
