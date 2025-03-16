@@ -40,8 +40,9 @@ def get_data():
     session = Session()
     try:
         results=session.execute(sqlalchemy.text("SELECT * FROM test"))
+        data=[dict(row) for row in results]
         session.close()
-        return jsonify([dict(row) for row in results])
+        return jsonify(data)
     except Exception as e:
         session.close()
         return jsonify({'error': str(e)}), 500
