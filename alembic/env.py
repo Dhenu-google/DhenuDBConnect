@@ -19,13 +19,7 @@ db_name = os.environ["DB_NAME"]
 
 if os.name != "nt":
     unix_socket_path = "/cloudsql/{}".format(os.environ["INSTANCE_CONNECTION_NAME"])
-    db_url = sqlalchemy.engine.url.URL.create(
-                drivername="mysql+pymysql",
-                username=db_user,
-                password=db_pass,
-                database=db_name,
-                query={"unix_socket": unix_socket_path},
-            )
+    db_url = f"mysql+pymysql://{db_user}:{db_pass}@localhost/{db_name}?unix_socket={unix_socket_path}"
 else:
     host = "127.0.0.1"
     port = "3060"
