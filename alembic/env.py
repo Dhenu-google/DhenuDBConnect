@@ -30,7 +30,7 @@ else:
     host = "127.0.0.1"
     port = "3060"
     db_url = f"mysql+pymysql://{db_user}:{db_pass}@{host}:{port}/{db_name}"
-print(db_url)
+
 
 context.config.set_main_option("sqlalchemy.url", str(db_url))
 
