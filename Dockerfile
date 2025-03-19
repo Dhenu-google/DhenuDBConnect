@@ -6,10 +6,14 @@ ENV APP_HOME /app
 
 ENV PORT 8080
 
+EXPOSE 8080
+
 WORKDIR $APP_HOME
 
 COPY . ./
 
 RUN pip install --no-cache-dir -r requirements.txt
+
+RUN chmod +x /app/entrypoint.sh
 
 ENTRYPOINT ["./entrypoint.sh"]
