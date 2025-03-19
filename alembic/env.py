@@ -1,6 +1,7 @@
 from logging.config import fileConfig
 
 from sqlalchemy import engine_from_config
+import sqlalchemy
 from sqlalchemy import pool
 
 from alembic import context
@@ -15,9 +16,23 @@ load_dotenv()
 db_user = os.environ["DB_USER"]
 db_pass = os.environ["DB_PASS"]
 db_name = os.environ["DB_NAME"]
-unix_socket_path = "/cloudsql/{}".format(os.environ["INSTANCE_CONNECTION_NAME"])
-db_url = f"mysql+pymysql://{db_user}:{db_pass}@/{db_name}?unix_socket={unix_socket_path}"
-context.config.set_main_option("sqlalchemy.url", db_url)
+
+if os.name != "nt":
+    unix_socket_path = "/cloudsql/{}".format(os.environ["INSTANCE_CONNECTION_NAME"])
+    db_url = sqlalchemy.engine.url.URL.create(
+                drivername="mysql+pymysql",
+                username=db_user,
+                password=db_pass,
+                database=db_name,
+                query={"unix_socket": unix_socket_path},
+            )
+else:
+    host = "127.0.0.1"
+    port = "3060"
+    db_url = f"mysql+pymysql://{db_user}:{db_pass}@{host}:{port}/{db_name}"
+print(db_url)
+
+context.config.set_main_option("sqlalchemy.url", str(db_url))
 
 
 

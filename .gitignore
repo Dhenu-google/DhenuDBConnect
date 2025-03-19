@@ -1,2 +1,6 @@
 .venv
 .env
+dhenu-cred.json
+cloud-sql-proxy.exe
+__pycache__
+./__pycache__
