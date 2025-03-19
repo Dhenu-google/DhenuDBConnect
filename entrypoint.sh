@@ -1,3 +1,4 @@
+#!/bin/bash
 set -e
 
 alembic revision --autogenerate -m "Auto migration"
