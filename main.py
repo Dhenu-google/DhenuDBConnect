@@ -4,6 +4,7 @@ from sqlalchemy.orm import sessionmaker
 from db_connect import session
 from views import api
 import os
+
 app = Flask(__name__)
 
 app.register_blueprint(api) # from views.py
