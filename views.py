@@ -1,4 +1,4 @@
-from models import User, Cow, CowBreed, CowDisease
+from models import User, Cow, CowBreed, CowDisease, Disease
 from flask import request, jsonify, Blueprint, Response
 from db_connect import session
 from sqlalchemy.orm import sessionmaker

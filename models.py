@@ -76,9 +76,7 @@ class Disease(Base):
     id = Column(Integer, primary_key=True)
     name = Column(String(255), nullable=False)
     description = Column(String(255))
-    date_diagnosed = Column(Date)
-    treatment = Column(String(255))
-    cow_id = Column(Integer, ForeignKey('cows.id'))
+    treatment = Column(String(255)) 
     cow_diseases = relationship('CowDisease', back_populates='disease')  # Link to CowDisease
 
 class User(Base):
