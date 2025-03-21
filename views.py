@@ -38,7 +38,7 @@ def add_user():
     try:
         session.add(User(**data))
         session.commit()
-        return jsonify({"message": "User added successfully"}), 201
+        return jsonify({"message": "User added successfully"}), 200
     except Exception as e:
         session.rollback()
         return jsonify({"error": str(e)}), 500
