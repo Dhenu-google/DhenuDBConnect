@@ -22,11 +22,12 @@ def add_user():
     name = data.get('name')
     role = data.get('role')
     email = data.get('email')
+    location = data.get('location')
 
-    if not oauthID or not name or not role or not email:
+    if not oauthID or not name or not role or not email or not location:
         return jsonify({"error": "Missing required fields"}), 400
     
-    if role not in User.role_options:
+    if role != "" and role not in User.role_options:
         return jsonify({"error": "Invalid role"}), 400
 
     if oauthID:
