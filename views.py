@@ -159,3 +159,14 @@ def set_role():
     except Exception as e:
         session.rollback()
         return jsonify({"error": str(e)}), 500
+
+
+## Retreive Role for give user
+@api.route('/get_role/<uid>', methods=['GET'])
+def get_role(uid):
+    if not uid:
+        return jsonify({"error": "User ID was not provided"}), 400
+    user = session.query(User).filter(User.oauthID == uid).first()
+    if not user:
+        return jsonify({"error": "User not found"}), 404
+    return jsonify({"role": user.role}), 200
