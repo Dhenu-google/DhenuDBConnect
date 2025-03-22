@@ -136,3 +136,26 @@ def get_breed(breed_id):
     if not breed:
         return jsonify({"error": "Breed not found"}), 404
     return jsonify(breed.serialize()), 200
+
+## set role for a user
+@api.route('/set_role', methods=['POST'])
+def set_role():
+    data = request.get_json()
+    if not data :
+        return jsonify({"error": "No data provided"}), 400
+    role = data.get('role')
+    uid = data.get('uid')
+    if not role:
+        return jsonify({"error": "Invalid role"}), 400
+    if not uid:
+        return jsonify({"error": "User ID was not provided"}), 400
+    user = session.query(User).filter(User.oauthID == uid).first()
+    if not user:
+        return jsonify({"error": "User not found"}), 404
+    user.role = role
+    try:
+        session.commit()
+        return jsonify({"message": "Role updated successfully"}), 200
+    except Exception as e:
+        session.rollback()
+        return jsonify({"error": str(e)}), 500
