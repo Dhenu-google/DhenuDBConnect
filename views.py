@@ -26,9 +26,6 @@ def add_user():
 
     if not oauthID or not name or not email or not location:
         return jsonify({"error": "Missing required fields"}), 400
-    
-    if role != "" and role not in User.role_options:
-        return jsonify({"error": "Invalid role"}), 400
 
     if oauthID:
         user = session.query(User).filter(User.oauthID == oauthID).first()
