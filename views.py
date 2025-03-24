@@ -43,8 +43,14 @@ def add_user():
 ## Purpose :- Get list of All Breeds (for Options in dropdown)
 @api.route('/get_breeds', methods=['GET'])
 def get_breeds():
-    breeds = session.query(CowBreed).all()
-    return jsonify([breed.serialize() for breed in breeds])
+    try:
+        # Query only the breed names
+        breeds = session.query(CowBreed.breed).all()
+        # Extract breed names from the query result
+        breed_names = [breed[0] for breed in breeds]
+        return jsonify(breed_names), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
     
 ## Purpose :- Add Cows owned by the farmer
 ## Expects :- JSON object with name, dob, health_status, 
