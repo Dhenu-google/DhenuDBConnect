@@ -66,11 +66,12 @@ def add_cow():
     name = data.get('name')
     breed = data.get('breed')  # Breed name from the frontend
     birth_date = data.get('birthDate')  # Birth date in YYYY-MM-DD format
+    owner_id = data.get('owner_id')  # Owner ID
+    milk_production = data.get('milk_production')  # Milk production in liters
 
     # Extract optional fields
     tag_number = data.get('tagNumber', None)
     notes = data.get('notes', None)
-
 
     try:
         # Resolve breed name to breed_id
@@ -84,6 +85,8 @@ def add_cow():
             breed_id=breed_obj.id,
             dob=birth_date,
             health_status='Healthy',  # Default health status
+            milk_production=milk_production,
+            owner_id=owner_id,
             work=None,  # Optional field, not provided by the frontend
             tag_number=tag_number,
             notes=notes
