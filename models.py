@@ -1,6 +1,7 @@
-from sqlalchemy import Column, Integer, String, Float, ForeignKey, Date, Table
+from sqlalchemy import Column, Integer, String, Float, ForeignKey, Date, DateTime, Table
 from sqlalchemy.orm import relationship
 from sqlalchemy.ext.declarative import declarative_base
+from datetime import datetime
 
 Base = declarative_base()
 
@@ -67,6 +68,11 @@ class Cow(Base):
     work = Column(String(255))
     breed = relationship('CowBreed', back_populates='cows')
     cow_diseases = relationship('CowDisease', back_populates='cow')  # Link to CowDisease
+    last_milked = Column(DateTime, nullable=True)
+    last_fed = Column(DateTime, nullable=True)
+    height = Column(Float, nullable=True)  # in cm
+    weight = Column(Float, nullable=True)  # in kg
+    age = Column(Integer, nullable=True)   # in years
 
 CowBreed.cows = relationship('Cow', back_populates='breed')
 
@@ -94,3 +100,16 @@ class User(Base):
     oauthID = Column(String(255), unique=True)
 
 Cow.owner = relationship('User', back_populates='cows')
+
+class CowStatus(Base):
+    __tablename__ = 'cow_status'
+
+    id = Column(Integer, primary_key=True)
+    cow_id = Column(Integer, ForeignKey('cows.id'), nullable=False)
+    label = Column(String(255), nullable=False)
+    type = Column(String(255), nullable=False)  # e.g., 'milking', 'feeding', 'healthy'
+    timestamp = Column(DateTime, default=datetime)  # Optional: track when the status was updated
+
+    cow = relationship('Cow', back_populates='statuses')
+
+Cow.statuses = relationship('CowStatus', back_populates='cow')
