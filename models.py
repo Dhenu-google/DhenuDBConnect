@@ -73,6 +73,8 @@ class Cow(Base):
     height = Column(Float, nullable=True)  # in cm
     weight = Column(Float, nullable=True)  # in kg
     age = Column(Integer, nullable=True)   # in years
+    tag_number = Column(String(255), nullable=True)  # New field for tag number
+    notes = Column(String(255), nullable=True)  # New field for additional notes
 
 CowBreed.cows = relationship('Cow', back_populates='breed')
 
