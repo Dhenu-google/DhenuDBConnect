@@ -136,17 +136,47 @@ def get_cow_breeds_ownded(uid):
         return jsonify({"error": str(e)}), 500
     
 ## Purpose :- Get list of Cows owned by the farmer in a specific breed
-@api.route('/get_cows_by_breed/<int:uid>/<int:breed_id>', methods=['GET'])
-def get_cows_by_breed(uid, breed_id):
-    if not uid or not breed_id:
-        return jsonify({"error": "Farmer Uid or Breed ID was not provided"}), 400
-    elif not session.query(User).filter(User.oauthID == uid).first():
+@api.route('/get_cows_by_breed/<uid>/<breed>', methods=['GET'])
+def get_cows_by_breed(uid, breed):
+    if not uid or not breed:
+        return jsonify({"error": "Farmer Uid or Breed name was not provided"}), 400
+
+    # Validate user existence
+    user = session.query(User).filter(User.oauthID == uid).first()
+    if not user:
         return jsonify({"error": "Farmer not found"}), 404
-    elif not session.query(CowBreed).filter(CowBreed.id == breed_id).first():
+
+    # Validate breed existence
+    breed_obj = session.query(CowBreed).filter(func.lower(CowBreed.breed) == breed.lower()).first()
+    if not breed_obj:
         return jsonify({"error": "Breed not found"}), 404
+
     try:
-        cows = session.query(Cow).filter(Cow.owner_id == uid, Cow.breed_id == breed_id).all()
-        return jsonify([cow.serialize() for cow in cows]), 200
+        # Query cows owned by the user and of the specified breed
+        cows = session.query(Cow).filter(Cow.owner_id == user.id, Cow.breed_id == breed_obj.id).all()
+
+        # Manually construct the response for each cow
+        result = []
+        for cow in cows:
+            result.append({
+                "id": cow.id,
+                "owner_id": cow.owner_id,
+                "name": cow.name,
+                "breed_id": cow.breed_id,
+                "dob": cow.dob.isoformat() if cow.dob else None,
+                "health_status": cow.health_status,
+                "milk_production": cow.milk_production,
+                "work": cow.work,
+                "last_milked": cow.last_milked.isoformat() if cow.last_milked else None,
+                "last_fed": cow.last_fed.isoformat() if cow.last_fed else None,
+                "height": cow.height,
+                "weight": cow.weight,
+                "age": cow.age,
+                "tag_number": cow.tag_number,
+                "notes": cow.notes
+            })
+
+        return jsonify(result), 200
     except Exception as e:
         return jsonify({"error": str(e)}), 500
     
