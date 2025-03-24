@@ -1,7 +1,8 @@
 from models import User, Cow, CowBreed, CowDisease, Disease
 from flask import request, jsonify, Blueprint, Response
 from db_connect import session
-from sqlalchemy.orm import sessionmaker
+from sqlalchemy.orm import sessionmaker,joinedload
+from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy import func
 
 api = Blueprint("api", __name__)
@@ -271,3 +272,51 @@ def get_cows(uid):
         return jsonify(result), 200
     except Exception as e:
         return jsonify({"error": str(e)}), 500
+    
+@api.route('/get_cow_by_name/<uid>/<cow_name>', methods=['GET'])
+def get_cow_by_name(uid, cow_name):
+    """
+    Fetch detailed information about a cow by its name for a specific user.
+    """
+    if not uid or not cow_name:
+        return jsonify({"error": "User UID or Cow Name was not provided"}), 400
+
+    try:
+        # Validate user existence
+        user = session.query(User).filter(User.oauthID == uid).first()
+        if not user:
+            return jsonify({"error": "User not found"}), 404
+
+        # Fetch cow details by name and owner
+        cow = (
+            session.query(Cow)
+            .options(joinedload(Cow.breed))  # Eager load breed relationship
+            .filter(Cow.owner_id == user.id, Cow.name.ilike(cow_name))
+            .first()
+        )
+
+        if not cow:
+            return jsonify({"error": "Cow not found"}), 404
+
+        # Construct response
+        cow_data = {
+            "id": cow.id,
+            "name": cow.name,
+            "breed": cow.breed.breed if cow.breed else None,
+            "origin": cow.breed.origin if cow.breed else None,
+            "age": cow.age,
+            "weight": cow.weight,
+            "height": cow.height,
+            "milkYield": cow.milk_production,
+            "lastMilked": cow.last_milked.isoformat() if cow.last_milked else None,
+            "lastFed": cow.last_fed.isoformat() if cow.last_fed else None,
+            "status": cow.health_status,
+            "notes": cow.notes,
+        }
+
+        return jsonify(cow_data), 200
+
+    except SQLAlchemyError as e:
+        return jsonify({"error": str(e)}), 500
+    except Exception as e:
+        return jsonify({"error": "An unexpected error occurred: " + str(e)}), 500
