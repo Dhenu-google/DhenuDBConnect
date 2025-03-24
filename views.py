@@ -66,7 +66,7 @@ def add_cow():
     name = data.get('name')
     breed = data.get('breed')  # Breed name from the frontend
     birth_date = data.get('birthDate')  # Birth date in YYYY-MM-DD format
-    owner_id = data.get('owner_id')  # Owner ID
+    oauth_id = data.get('owner_id')  # Owner's oauthID from the frontend
     milk_production = data.get('milk_production')  # Milk production in liters
 
     # Extract optional fields
@@ -74,6 +74,12 @@ def add_cow():
     notes = data.get('notes', None)
 
     try:
+        # Resolve oauthID to user ID
+        user = session.query(User).filter(User.oauthID == oauth_id).first()
+        if not user:
+            return jsonify({"error": f"User with oauthID '{oauth_id}' not found"}), 404
+        owner_id = user.id
+
         # Resolve breed name to breed_id
         breed_obj = session.query(CowBreed).filter(func.lower(CowBreed.breed) == breed.lower()).first()
         if not breed_obj:
