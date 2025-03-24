@@ -56,21 +56,38 @@ def add_cow():
     if not data:
         return jsonify({"error": "No data provided"}), 400
 
+    # Extract required fields
     name = data.get('name')
-    dob = data.get('dob')
-    health_status = data.get('health_status')
-    milk_production = data.get('milk_production')
-    work = data.get('work')
-    breed_id = data.get('breed_id')
-    owner_id = data.get('owner_id')
+    breed = data.get('breed')  # Breed name from the frontend
+    birth_date = data.get('birthDate')  # Birth date in YYYY-MM-DD format
 
-    if not name or not dob or not health_status or not milk_production or not work or not breed_id:
-        return jsonify({"error": "Missing required fields"}), 400
+    # Extract optional fields
+    tag_number = data.get('tagNumber', None)
+    notes = data.get('notes', None)
+
 
     try:
-        session.add(Cow(**data))
+        # Resolve breed name to breed_id
+        breed_obj = session.query(CowBreed).filter(func.lower(CowBreed.breed) == breed.lower()).first()
+        if not breed_obj:
+            return jsonify({"error": f"Breed '{breed}' not found"}), 404
+
+        # Create a new Cow object
+        new_cow = Cow(
+            name=name,
+            breed_id=breed_obj.id,
+            dob=birth_date,
+            health_status='Healthy',  # Default health status
+            work=None,  # Optional field, not provided by the frontend
+            tag_number=tag_number,
+            notes=notes
+        )
+
+        # Add the cow to the database
+        session.add(new_cow)
         session.commit()
-        return jsonify({"message": "Cow added successfully"}), 201
+
+        return jsonify({"message": "Cow added successfully", "cow_id": new_cow.id}), 201
     except Exception as e:
         session.rollback()
         return jsonify({"error": str(e)}), 500
