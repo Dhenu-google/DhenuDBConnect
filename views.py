@@ -109,23 +109,27 @@ def add_cow():
 
 ## Purpose :- Get list of Cows Breeds (and the number of cows of that breed) 
 # owned by the farmer
-@api.route('/get_cow_breeds_owned/<int:uid>', methods=['GET'])
+@api.route('/get_cow_breeds_owned/<uid>', methods=['GET'])
 def get_cow_breeds_ownded(uid):
-    # Get list of breeds of cows the farmer owns
-    # Each cow has a breed_id that corresponds to a breed
-    # Get all cows with the breed_id
+    # Validate that the uid (oauthID) is provided
     if not uid:
         return jsonify({"error": "Farmer Uid was not provided"}), 400
-    elif not session.query(User).filter(User.oauthID == uid).first():
+
+    # Resolve oauthID to user ID
+    user = session.query(User).filter(User.oauthID == uid).first()
+    if not user:
         return jsonify({"error": "Farmer not found"}), 404
+
     try:
+        # Query the breeds and count of cows owned by the user
         breeds = (
-            session.query(CowBreed.breed,CowBreed.id,func.count(Cow.id).label('count'))
+            session.query(CowBreed.breed, CowBreed.id, func.count(Cow.id).label('count'))
             .join(Cow, Cow.breed_id == CowBreed.id)
-            .filter(Cow.owner_id == uid)
+            .filter(Cow.owner_id == user.id)  # Use the resolved user ID
             .group_by(CowBreed.id, CowBreed.breed)
             .all()
         )
+        # Format the result as a list of dictionaries
         result = [{"breed": breed.breed, "count": breed.count} for breed in breeds]
         return jsonify(result), 200
     except Exception as e:
