@@ -233,3 +233,41 @@ def get_role(uid):
     if not user:
         return jsonify({"error": "User not found"}), 404
     return jsonify({"role": user.role}), 200
+
+@api.route('/get_cows/<uid>', methods=['GET'])
+def get_cows(uid):
+    if not uid:
+        return jsonify({"error": "Farmer Uid was not provided"}), 400
+
+    # Validate user existence
+    user = session.query(User).filter(User.oauthID == uid).first()
+    if not user:
+        return jsonify({"error": "Farmer not found"}), 404
+
+    try:
+        # Query all cows owned by the user
+        cows = session.query(Cow).join(CowBreed, Cow.breed_id == CowBreed.id).filter(Cow.owner_id == user.id).all()
+
+        # Manually construct the response for each cow
+        result = []
+        for cow in cows:
+            result.append({
+                "id": cow.id,
+                "name": cow.name,
+                "breed": cow.breed.breed,  # Fetch breed name from the relationship
+                "dob": cow.dob.isoformat() if cow.dob else None,
+                "health_status": cow.health_status,
+                "milk_production": cow.milk_production,
+                "work": cow.work,
+                "last_milked": cow.last_milked.isoformat() if cow.last_milked else None,
+                "last_fed": cow.last_fed.isoformat() if cow.last_fed else None,
+                "height": cow.height,
+                "weight": cow.weight,
+                "age": cow.age,
+                "tag_number": cow.tag_number,
+                "notes": cow.notes
+            })
+
+        return jsonify(result), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
