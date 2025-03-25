@@ -356,13 +356,18 @@ def get_user(uid):
 def get_locations_with_roles():
     """
     Fetch all unique locations stored in the database along with the corresponding roles,
-    excluding roles 'Public' and 'Normal'.
+    excluding roles 'Public', 'Normal', NULL roles, and invalid locations.
     """
     try:
-        # Query unique locations and roles from the User table, excluding 'Public' and 'Normal'
+        # Query unique locations and roles from the User table, excluding unwanted roles and locations
         locations_with_roles = (
             session.query(User.location, User.role)
-            .filter(~User.role.in_(['Public', 'Normal']))  # Exclude 'Public' and 'Normal'
+            .filter(
+                ~User.role.in_(['Public', 'Normal']),  # Exclude 'Public' and 'Normal'
+                User.role.isnot(None),                 # Exclude NULL roles
+                User.location.isnot(None),             # Exclude NULL locations
+                User.location != ''                    # Exclude empty string locations
+            )
             .distinct(User.location, User.role)
             .all()
         )
