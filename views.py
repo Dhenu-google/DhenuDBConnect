@@ -445,6 +445,8 @@ def get_notifications(uid):
             'message': n.message,
             'latitude': n.latitude,
             'longitude': n.longitude,
-            'created_at': n.created_at.isoformat()
+            'created_at': n.created_at.isoformat(),
+            'image_url': n.image_url,
+            'status': n.status,
         } for n in notifications
     ])
