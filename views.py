@@ -421,7 +421,7 @@ def notify_nearby_users():
             user_id=user.id,
             message="A stray cow has been reported near your location.",
             latitude=latitude,
-            longitude=longitude
+            longitude=longitude,
             image_url=image_url,
             status=status
         )
