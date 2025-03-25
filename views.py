@@ -351,3 +351,30 @@ def get_user(uid):
         return jsonify({"error": str(e)}), 500
     except Exception as e:
         return jsonify({"error": "An unexpected error occurred: " + str(e)}), 500
+    
+@api.route('/get_locations_with_roles', methods=['GET'])
+def get_locations_with_roles():
+    """
+    Fetch all unique locations stored in the database along with the corresponding roles,
+    excluding roles 'Public' and 'Normal'.
+    """
+    try:
+        # Query unique locations and roles from the User table, excluding 'Public' and 'Normal'
+        locations_with_roles = (
+            session.query(User.location, User.role)
+            .filter(~User.role.in_(['Public', 'Normal']))  # Exclude 'Public' and 'Normal'
+            .distinct(User.location, User.role)
+            .all()
+        )
+
+        # Format the response as a list of dictionaries
+        result = [
+            {"location": location, "role": role}
+            for location, role in locations_with_roles
+        ]
+
+        return jsonify(result), 200
+    except SQLAlchemyError as e:
+        return jsonify({"error": str(e)}), 500
+    except Exception as e:
+        return jsonify({"error": "An unexpected error occurred: " + str(e)}), 500
