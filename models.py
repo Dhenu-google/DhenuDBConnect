@@ -126,6 +126,8 @@ class Notification(Base):
     latitude = Column(Float, nullable=True)
     longitude = Column(Float, nullable=True)
     created_at = Column(DateTime, default=datetime.utcnow)
+    image_url = Column(String(255), nullable=True)
+    status = Column(String(255), default='unread')
 
     user = relationship('User', back_populates='notifications')
 
