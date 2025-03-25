@@ -115,3 +115,18 @@ class CowStatus(Base):
     cow = relationship('Cow', back_populates='statuses')
 
 Cow.statuses = relationship('CowStatus', back_populates='cow')
+
+
+class Notification(Base):
+    __tablename__ = 'notifications'
+
+    id = Column(Integer, primary_key=True)
+    user_id = Column(Integer, ForeignKey('users.id'), nullable=False)
+    message = Column(String(255), nullable=False)
+    latitude = Column(Float, nullable=True)
+    longitude = Column(Float, nullable=True)
+    created_at = Column(DateTime, default=datetime.utcnow)
+
+    user = relationship('User', back_populates='notifications')
+
+User.notifications = relationship('Notification', back_populates='user')

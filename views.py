@@ -1,9 +1,11 @@
-from models import User, Cow, CowBreed, CowDisease, Disease
+from models import User, Cow, CowBreed, CowDisease, Disease, Notification
 from flask import request, jsonify, Blueprint, Response
 from db_connect import session
 from sqlalchemy.orm import sessionmaker,joinedload
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy import func
+from math import radians, sin, cos, sqrt, atan2
+
 
 api = Blueprint("api", __name__)
 
@@ -383,3 +385,62 @@ def get_locations_with_roles():
         return jsonify({"error": str(e)}), 500
     except Exception as e:
         return jsonify({"error": "An unexpected error occurred: " + str(e)}), 500
+    
+def haversine(lat1, lon1, lat2, lon2):
+    R = 6371  # Radius of Earth in km
+    dlat = radians(lat2 - lat1)
+    dlon = radians(lon2 - lon1)
+    a = sin(dlat / 2) ** 2 + cos(radians(lat1)) * cos(radians(lat2)) * sin(dlon / 2) ** 2
+    c = 2 * atan2(sqrt(a), sqrt(1 - a))
+    return R * c
+
+@api.route('/notify_nearby_users', methods=['POST'])
+def notify_nearby_users():
+    data = request.json
+    latitude = data['latitude']
+    longitude = data['longitude']
+    radius_km = data.get('radius_km', 10)  # Default radius is 10 km
+
+    # Query users with specific roles
+    users = session.query(User).filter(User.role.in_(['farmer', 'NGO', 'gaushala'])).all()
+
+    # Filter users within the radius
+    nearby_users = []
+    for user in users:
+        if user.location:
+            user_lat, user_lon = map(float, user.location.split(','))
+            distance = haversine(latitude, longitude, user_lat, user_lon)
+            if distance <= radius_km:
+                nearby_users.append(user)
+
+    # Save notifications in the database
+    for user in nearby_users:
+        notification = Notification(
+            user_id=user.id,
+            message="A stray cow has been reported near your location.",
+            latitude=latitude,
+            longitude=longitude
+        )
+        session.add(notification)
+
+    session.commit()
+    return jsonify({'message': 'Notifications sent to nearby users', 'nearby_users': [user.name for user in nearby_users]})
+
+@api.route('/get_notifications/<uid>', methods=['GET'])
+def get_notifications(uid):
+    notifications = (
+        session.query(Notification)
+        .join(User, Notification.user_id == User.id)
+        .filter(User.oauthID == uid)
+        .order_by(Notification.created_at.desc())
+        .all()
+    )
+
+    return jsonify([
+        {
+            'message': n.message,
+            'latitude': n.latitude,
+            'longitude': n.longitude,
+            'created_at': n.created_at.isoformat()
+        } for n in notifications
+    ])
