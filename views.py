@@ -410,10 +410,24 @@ def notify_nearby_users():
     nearby_users = []
     for user in users:
         if user.location:
-            user_lat, user_lon = map(float, user.location.split(','))
-            distance = haversine(latitude, longitude, user_lat, user_lon)
-            if distance <= radius_km:
-                nearby_users.append(user)
+            try:
+                # Check if location is a URL and extract coordinates
+                if user.location.startswith("http"):
+                    # Extract latitude and longitude from the URL
+                    query_params = user.location.split('?')[-1]
+                    coords = query_params.split('=')[-1].split(',')
+                    user_lat, user_lon = map(float, coords)
+                else:
+                    # Assume location is in "lat,lon" format
+                    user_lat, user_lon = map(float, user.location.split(','))
+
+                # Calculate distance
+                distance = haversine(latitude, longitude, user_lat, user_lon)
+                if distance <= radius_km:
+                    nearby_users.append(user)
+            except (ValueError, IndexError):
+                # Skip users with invalid location data
+                continue
 
     # Save notifications in the database
     for user in nearby_users:
