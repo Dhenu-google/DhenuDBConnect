@@ -320,3 +320,34 @@ def get_cow_by_name(uid, cow_name):
         return jsonify({"error": str(e)}), 500
     except Exception as e:
         return jsonify({"error": "An unexpected error occurred: " + str(e)}), 500
+    
+@api.route('/get_user/<uid>', methods=['GET'])
+def get_user(uid):
+    """
+    Fetch user information based on the provided uid (OAuth ID).
+    """
+    if not uid:
+        return jsonify({"error": "User UID was not provided"}), 400
+
+    try:
+        # Query the user by OAuth ID
+        user = session.query(User).filter(User.oauthID == uid).first()
+        if not user:
+            return jsonify({"error": "User not found"}), 404
+
+        # Construct the response with user details
+        user_data = {
+            "id": user.id,
+            "oauthID": user.oauthID,
+            "name": user.name,
+            "email": user.email,
+            "role": user.role,
+            "location": user.location,
+        }
+
+        return jsonify(user_data), 200
+
+    except SQLAlchemyError as e:
+        return jsonify({"error": str(e)}), 500
+    except Exception as e:
+        return jsonify({"error": "An unexpected error occurred: " + str(e)}), 500
