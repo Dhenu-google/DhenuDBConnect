@@ -402,16 +402,22 @@ def notify_nearby_users():
     radius_km = data.get('radius_km', 10)  # Default radius is 10 km
 
     # Query users with specific roles
-    users = session.query(User).filter(User.role.in_(['farmer', 'NGO', 'gaushala'])).all()
+    users = session.query(User).filter(User.role.in_(['Farmer', 'NGO', 'Gaushala'])).all()
 
     # Filter users within the radius
     nearby_users = []
     for user in users:
         if user.location:
-            user_lat, user_lon = map(float, user.location.split(','))
-            distance = haversine(latitude, longitude, user_lat, user_lon)
-            if distance <= radius_km:
-                nearby_users.append(user)
+            try:
+                # Extract latitude and longitude from the Google Maps URL
+                query_string = user.location.split('q=')[-1]
+                user_lat, user_lon = map(float, query_string.split(','))
+                distance = haversine(latitude, longitude, user_lat, user_lon)
+                if distance <= radius_km:
+                    nearby_users.append(user)
+            except (ValueError, IndexError):
+                # Skip users with invalid location format
+                continue
 
     # Save notifications in the database
     for user in nearby_users:
