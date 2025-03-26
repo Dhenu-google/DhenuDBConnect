@@ -404,7 +404,9 @@ def notify_nearby_users():
     status = data.get('status', 'unread')
 
     # Query users with specific roles
-    users = session.query(User).filter(User.role.in_(['Farmer', 'NGO', 'Gaushala'])).all()
+    users = session.query(User).filter(
+        func.lower(User.role).in_([role.lower() for role in ['farmer', 'ngo', 'gaushala owner']])
+    ).all()
 
     # Filter users within the radius
     nearby_users = []
