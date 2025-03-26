@@ -70,7 +70,7 @@ def add_cow():
     breed = data.get('breed')  # Breed name from the frontend
     birth_date = data.get('birthDate')  # Birth date in YYYY-MM-DD format
     oauth_id = data.get('owner_id')  # Owner's oauthID from the frontend
-    milk_production = data.get('milk_production')  # Milk production in liters
+    milk_production = data.get('milk_production', 0.0)  # Milk production in liters
 
     # Extract optional fields
     tag_number = data.get('tagNumber', None)
