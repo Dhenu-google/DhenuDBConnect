@@ -474,3 +474,36 @@ def get_notifications(uid):
             'status': n.status,
         } for n in notifications
     ])
+
+@api.route('/get_cow_count_by_breed/<uid>/<breed>', methods=['GET'])
+def get_cow_count_by_breed(uid, breed):
+    """
+    Fetch the number of cows under a specific breed for a specific user (uid).
+    """
+    if not uid or not breed:
+        return jsonify({"error": "User UID or Breed name was not provided"}), 400
+
+    try:
+        # Validate user existence
+        user = session.query(User).filter(User.oauthID == uid).first()
+        if not user:
+            return jsonify({"error": "User not found"}), 404
+
+        # Validate breed existence
+        breed_obj = session.query(CowBreed).filter(func.lower(CowBreed.breed) == breed.lower()).first()
+        if not breed_obj:
+            return jsonify({"error": "Breed not found"}), 404
+
+        # Query the count of cows owned by the user and of the specified breed
+        cow_count = (
+            session.query(func.count(Cow.id))
+            .filter(Cow.owner_id == user.id, Cow.breed_id == breed_obj.id)
+            .scalar()
+        )
+
+        return jsonify({"cow_count": cow_count}), 200
+
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
