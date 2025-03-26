@@ -3,11 +3,13 @@ import sqlalchemy
 from sqlalchemy.orm import sessionmaker
 from db_connect import session
 from views import api
+from chatbot import chat_api
 import os
 
 app = Flask(__name__)
 
 app.register_blueprint(api) # from views.py
+app.register_blueprint(chat_api)
 
 # Endpoint to handle requests from React Native
 @app.route('/data')
