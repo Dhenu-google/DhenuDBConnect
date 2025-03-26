@@ -232,10 +232,18 @@ def set_role():
 def get_role(uid):
     if not uid:
         return jsonify({"error": "User ID was not provided"}), 400
-    user = session.query(User).filter(User.oauthID == uid).first()
-    if not user:
-        return jsonify({"error": "User not found"}), 404
-    return jsonify({"role": user.role}), 200
+
+    try:
+        user = session.query(User).filter(User.oauthID == uid).first()
+        if not user:
+            return jsonify({"error": "User not found"}), 404
+        return jsonify({"role": user.role}), 200
+    except SQLAlchemyError as e:
+        session.rollback()  # Rollback the session in case of an error
+        return jsonify({"error": str(e)}), 500
+    except Exception as e:
+        session.rollback()  # Rollback the session for any other exception
+        return jsonify({"error": "An unexpected error occurred: " + str(e)}), 500
 
 @api.route('/get_cows/<uid>', methods=['GET'])
 def get_cows(uid):
@@ -389,7 +397,7 @@ def get_locations_with_roles():
 def haversine(lat1, lon1, lat2, lon2):
     R = 6371  # Radius of Earth in km
     dlat = radians(lat2 - lat1)
-    dlon = radians(lon2 - lon1)
+    dlon = radians(lat2 - lon1)
     a = sin(dlat / 2) ** 2 + cos(radians(lat1)) * cos(radians(lat2)) * sin(dlon / 2) ** 2
     c = 2 * atan2(sqrt(a), sqrt(1 - a))
     return R * c
