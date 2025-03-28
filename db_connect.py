@@ -40,4 +40,3 @@ def connect_unix_socket() -> sqlalchemy.engine.base.Engine:
 # Create the engine and session factory
 engine = connect_unix_socket()
 Session = scoped_session(sessionmaker(bind=engine))
-session = Session()

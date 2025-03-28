@@ -1,7 +1,7 @@
 from flask import Flask, request, jsonify
 import sqlalchemy
 from sqlalchemy.orm import sessionmaker
-from db_connect import session,Session
+from db_connect import Session
 from views import api
 from chatbot import chat_api
 from breedingRecBot import breeding_rec_api
@@ -17,6 +17,7 @@ app.register_blueprint(breeding_rec_api)
 @app.route('/data')
 def get_data():
     try:
+        session=Session()
         results=session.execute(sqlalchemy.text("SELECT * FROM test"))
         data = []
         for row in results:
@@ -30,7 +31,7 @@ def get_data():
 @app.teardown_appcontext
 def shutdown_session(exception=None):
     if exception:
-        session.rollback()
+        Session.rollback()
     Session.remove()
 
 if __name__ == "__main__":

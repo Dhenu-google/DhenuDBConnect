@@ -1,6 +1,6 @@
 from models import User, Cow, CowBreed, CowDisease, Disease, Notification
 from flask import request, jsonify, Blueprint, Response
-from db_connect import session
+from db_connect import Session
 from sqlalchemy.orm import sessionmaker,joinedload
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy import func
@@ -17,6 +17,7 @@ def main():
 ## Expects :- JSON object with oauthID, name, role, email - with same keys
 @api.route('/add_user', methods=['POST'])
 def add_user():
+    session = Session()  # Create a new session instance
     data = request.get_json()
     if not data:
         return jsonify({"error": "No data provided"}), 400
@@ -42,11 +43,14 @@ def add_user():
     except Exception as e:
         session.rollback()
         return jsonify({"error": str(e)}), 500
+    finally:
+        session.close()  # Close the session
 
 ## Purpose :- Get list of All Breeds (for Options in dropdown)
 @api.route('/get_breeds', methods=['GET'])
 def get_breeds():
     try:
+        session=Session()
         # Query only the breed names
         breeds = session.query(CowBreed.breed).all()
         # Extract breed names from the query result
@@ -54,6 +58,8 @@ def get_breeds():
         return jsonify(breed_names), 200
     except Exception as e:
         return jsonify({"error": str(e)}), 500
+    finally:
+        session.close()
     
 ## Purpose :- Add Cows owned by the farmer
 ## Expects :- JSON object with name, dob, health_status, 
@@ -61,6 +67,7 @@ def get_breeds():
 #             and owner_id, not all keys are mandoatory
 @api.route('/add_cow', methods=['POST'])
 def add_cow():
+    session=Session()
     data = request.get_json()
     if not data:
         return jsonify({"error": "No data provided"}), 400
@@ -109,11 +116,14 @@ def add_cow():
     except Exception as e:
         session.rollback()
         return jsonify({"error": str(e)}), 500
+    finally:
+        session.close()
 
 ## Purpose :- Get list of Cows Breeds (and the number of cows of that breed) 
 # owned by the farmer
 @api.route('/get_cow_breeds_owned/<uid>', methods=['GET'])
 def get_cow_breeds_ownded(uid):
+    session = Session()
     # Validate that the uid (oauthID) is provided
     if not uid:
         return jsonify({"error": "Farmer Uid was not provided"}), 400
@@ -137,10 +147,13 @@ def get_cow_breeds_ownded(uid):
         return jsonify(result), 200
     except Exception as e:
         return jsonify({"error": str(e)}), 500
+    finally:
+        session.close()
     
 ## Purpose :- Get list of Cows owned by the farmer in a specific breed
 @api.route('/get_cows_by_breed/<uid>/<breed>', methods=['GET'])
 def get_cows_by_breed(uid, breed):
+    session = Session()
     if not uid or not breed:
         return jsonify({"error": "Farmer Uid or Breed name was not provided"}), 400
 
@@ -182,23 +195,29 @@ def get_cows_by_breed(uid, breed):
         return jsonify(result), 200
     except Exception as e:
         return jsonify({"error": str(e)}), 500
+    finally:
+        session.close()
     
 ## Purpose :- Get Detail about a specific Cow
 @api.route('/get_cow/<int:cow_id>', methods=['GET'])
 def get_cow(cow_id):
+    session=Session()
     if not cow_id:
         return jsonify({"error": "Cow ID was not provided"}), 400
     cow = session.query(Cow).filter(Cow.id == cow_id).first()
     if not cow:
         return jsonify({"error": "Cow not found"}), 404
+    session.close()
     return jsonify(cow.serialize()), 200
 
 ## Get Breed Details
 @api.route('/get_breed/<int:breed_id>', methods=['GET'])
 def get_breed(breed_id):
+    session=Session()
     if not breed_id:
         return jsonify({"error": "Breed ID was not provided"}), 400
     breed = session.query(CowBreed).filter(CowBreed.id == breed_id).first()
+    session.close()
     if not breed:
         return jsonify({"error": "Breed not found"}), 404
     return jsonify(breed.serialize()), 200
@@ -206,6 +225,7 @@ def get_breed(breed_id):
 ## set role for a user
 @api.route('/set_role', methods=['POST'])
 def set_role():
+    session = Session()
     data = request.get_json()
     if not data :
         return jsonify({"error": "No data provided"}), 400
@@ -225,11 +245,14 @@ def set_role():
     except Exception as e:
         session.rollback()
         return jsonify({"error": str(e)}), 500
+    finally:
+        session.close()
 
 
 ## Retreive Role for give user
 @api.route('/get_role/<uid>', methods=['GET'])
 def get_role(uid):
+    session =Session()
     if not uid:
         return jsonify({"error": "User ID was not provided"}), 400
 
@@ -244,9 +267,12 @@ def get_role(uid):
     except Exception as e:
         session.rollback()  # Rollback the session for any other exception
         return jsonify({"error": "An unexpected error occurred: " + str(e)}), 500
+    finally:
+        session.close()
 
 @api.route('/get_cows/<uid>', methods=['GET'])
 def get_cows(uid):
+    session=Session()
     if not uid:
         return jsonify({"error": "Farmer Uid was not provided"}), 400
 
@@ -282,9 +308,14 @@ def get_cows(uid):
         return jsonify(result), 200
     except Exception as e:
         return jsonify({"error": str(e)}), 500
+    finally:
+        session.close()
+    
     
 @api.route('/get_cow_by_name/<uid>/<cow_name>', methods=['GET'])
 def get_cow_by_name(uid, cow_name):
+
+    session=Session()
     """
     Fetch detailed information about a cow by its name for a specific user.
     """
@@ -330,12 +361,15 @@ def get_cow_by_name(uid, cow_name):
         return jsonify({"error": str(e)}), 500
     except Exception as e:
         return jsonify({"error": "An unexpected error occurred: " + str(e)}), 500
+    finally:
+        session.close()
     
 @api.route('/get_user/<uid>', methods=['GET'])
 def get_user(uid):
     """
     Fetch user information based on the provided uid (OAuth ID).
     """
+    session=Session()
     if not uid:
         return jsonify({"error": "User UID was not provided"}), 400
 
@@ -361,6 +395,8 @@ def get_user(uid):
         return jsonify({"error": str(e)}), 500
     except Exception as e:
         return jsonify({"error": "An unexpected error occurred: " + str(e)}), 500
+    finally:
+        session.close()
     
 @api.route('/get_locations_with_roles', methods=['GET'])
 def get_locations_with_roles():
@@ -368,6 +404,8 @@ def get_locations_with_roles():
     Fetch all unique locations stored in the database along with the corresponding roles,
     excluding roles 'Public', 'Normal', NULL roles, and invalid locations.
     """
+    
+    session=Session()
     try:
         # Query unique locations and roles from the User table, excluding unwanted roles and locations
         locations_with_roles = (
@@ -393,6 +431,8 @@ def get_locations_with_roles():
         return jsonify({"error": str(e)}), 500
     except Exception as e:
         return jsonify({"error": "An unexpected error occurred: " + str(e)}), 500
+    finally:
+        session.close()
     
 def haversine(lat1, lon1, lat2, lon2):
     R = 6371  # Radius of Earth in km
@@ -404,6 +444,8 @@ def haversine(lat1, lon1, lat2, lon2):
 
 @api.route('/notify_nearby_users', methods=['POST'])
 def notify_nearby_users():
+
+    session=Session()
     data = request.json
     latitude = data['latitude']
     longitude = data['longitude']
@@ -452,10 +494,13 @@ def notify_nearby_users():
         session.add(notification)
 
     session.commit()
+    session.close()
     return jsonify({'message': 'Notifications sent to nearby users', 'nearby_users': [user.name for user in nearby_users]})
 
 @api.route('/get_notifications/<uid>', methods=['GET'])
 def get_notifications(uid):
+
+    session=Session()
     notifications = (
         session.query(Notification)
         .join(User, Notification.user_id == User.id)
@@ -463,6 +508,7 @@ def get_notifications(uid):
         .order_by(Notification.created_at.desc())
         .all()
     )
+    session.close()
 
     return jsonify([
         {
@@ -480,6 +526,7 @@ def get_cow_count_by_breed(uid, breed):
     """
     Fetch the number of cows under a specific breed for a specific user (uid).
     """
+    session=Session()
     if not uid or not breed:
         return jsonify({"error": "User UID or Breed name was not provided"}), 400
 
@@ -505,5 +552,6 @@ def get_cow_count_by_breed(uid, breed):
 
     except Exception as e:
         return jsonify({"error": str(e)}), 500
-
+    finally:
+        session.close()
 
