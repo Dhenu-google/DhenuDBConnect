@@ -555,3 +555,51 @@ def get_cow_count_by_breed(uid, breed):
     finally:
         session.close()
 
+@api.route('/update_cow/<uid>/<cow_name>', methods=['PUT'])
+def update_cow(uid, cow_name):
+    """
+    Update specific fields of a cow by its name for a specific user.
+    """
+    session = Session()  # Create a new session instance
+    data = request.get_json()
+
+    if not uid or not cow_name:
+        return jsonify({"error": "User UID or Cow Name was not provided"}), 400
+
+    try:
+        # Validate user existence
+        user = session.query(User).filter(User.oauthID == uid).first()
+        if not user:
+            return jsonify({"error": "User not found"}), 404
+
+        # Fetch the cow by name and owner
+        cow = (
+            session.query(Cow)
+            .filter(Cow.owner_id == user.id, Cow.name.ilike(cow_name))
+            .first()
+        )
+        if not cow:
+            return jsonify({"error": "Cow not found"}), 404
+
+        # Update the fields if they are provided in the request
+        if "last_milked" in data:
+            cow.last_milked = data["last_milked"]
+        if "last_fed" in data:
+            cow.last_fed = data["last_fed"]
+        if "notes" in data:
+            cow.notes = data["notes"]
+        if "milk_production" in data:
+            cow.milk_production = data["milk_production"]
+        if "health_status" in data:
+            cow.health_status = data["health_status"]
+
+        # Commit the changes to the database
+        session.commit()
+        return jsonify({"message": "Cow updated successfully"}), 200
+
+    except Exception as e:
+        session.rollback()  # Rollback the transaction in case of an error
+        return jsonify({"error": str(e)}), 500
+    finally:
+        session.close()  # Close the session
+
