@@ -1,7 +1,7 @@
 from flask import Flask, request, jsonify
 import sqlalchemy
 from sqlalchemy.orm import sessionmaker
-from db_connect import session
+from db_connect import session,Session
 from views import api
 from chatbot import chat_api
 from breedingRecBot import breeding_rec_api
@@ -23,17 +23,15 @@ def get_data():
             row_dict = dict(row._mapping)
             data.append(row_dict)
         print(data)
-        session.close()
         return jsonify(data)
     except Exception as e:
-        session.close()
         return jsonify({'error': str(e)}), 500
     
 @app.teardown_appcontext
 def shutdown_session(exception=None):
     if exception:
         session.rollback()
-    session.remove()
+    Session.remove()
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 8080)))
