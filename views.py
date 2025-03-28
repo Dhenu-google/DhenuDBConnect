@@ -603,10 +603,10 @@ def update_cow(uid, cow_name):
     finally:
         session.close()  # Close the session
 
-@api.route('/delete_cow/<uid>/<cow_id>', methods=['DELETE'])
-def delete_cow(uid, cow_id):
+@api.route('/delete_cow/<uid>/<cow_name>', methods=['DELETE'])
+def delete_cow(uid, cow_name):
     """
-    Delete a cow by its ID for a specific user.
+    Delete a cow by its name for a specific user.
     """
     session = Session()  # Create a new session instance
 
@@ -616,8 +616,8 @@ def delete_cow(uid, cow_id):
         if not user:
             return jsonify({"error": "User not found"}), 404
 
-        # Fetch the cow by ID and owner
-        cow = session.query(Cow).filter(Cow.owner_id == user.id, Cow.id == cow_id).first()
+        # Fetch the cow by name and owner
+        cow = session.query(Cow).filter(Cow.owner_id == user.id, Cow.name.ilike(cow_name)).first()
         if not cow:
             return jsonify({"error": "Cow not found"}), 404
 
