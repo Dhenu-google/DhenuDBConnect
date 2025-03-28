@@ -2,6 +2,7 @@ import os
 from dotenv import load_dotenv
 import sqlalchemy
 from sqlalchemy.orm import sessionmaker
+from sqlalchemy.orm import scoped_session
 
 load_dotenv()
 
@@ -38,5 +39,5 @@ def connect_unix_socket() -> sqlalchemy.engine.base.Engine:
 
 # Create the engine and session factory
 engine = connect_unix_socket()
-Session = sessionmaker(bind=engine)
+Session = scoped_session(sessionmaker(bind=engine))
 session = Session()
