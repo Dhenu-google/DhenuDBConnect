@@ -28,6 +28,12 @@ def get_data():
     except Exception as e:
         session.close()
         return jsonify({'error': str(e)}), 500
+    
+@app.teardown_appcontext
+def shutdown_session(exception=None):
+    if exception:
+        session.rollback()
+    session.remove()
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 8080)))
