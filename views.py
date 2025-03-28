@@ -603,3 +603,31 @@ def update_cow(uid, cow_name):
     finally:
         session.close()  # Close the session
 
+@api.route('/delete_cow/<uid>/<cow_id>', methods=['DELETE'])
+def delete_cow(uid, cow_id):
+    """
+    Delete a cow by its ID for a specific user.
+    """
+    session = Session()  # Create a new session instance
+
+    try:
+        # Validate user existence
+        user = session.query(User).filter(User.oauthID == uid).first()
+        if not user:
+            return jsonify({"error": "User not found"}), 404
+
+        # Fetch the cow by ID and owner
+        cow = session.query(Cow).filter(Cow.owner_id == user.id, Cow.id == cow_id).first()
+        if not cow:
+            return jsonify({"error": "Cow not found"}), 404
+
+        # Delete the cow
+        session.delete(cow)
+        session.commit()
+        return jsonify({"message": "Cow deleted successfully"}), 200
+
+    except Exception as e:
+        session.rollback()  # Rollback the transaction in case of an error
+        return jsonify({"error": str(e)}), 500
+    finally:
+        session.close()  # Close the session
