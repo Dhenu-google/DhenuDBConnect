@@ -437,7 +437,7 @@ def get_locations_with_roles():
 def haversine(lat1, lon1, lat2, lon2):
     R = 6371  # Radius of Earth in km
     dlat = radians(lat2 - lat1)
-    dlon = radians(lat2 - lon1)
+    dlon = radians(lon2 - lon1)
     a = sin(dlat / 2) ** 2 + cos(radians(lat1)) * cos(radians(lat2)) * sin(dlon / 2) ** 2
     c = 2 * atan2(sqrt(a), sqrt(1 - a))
     return R * c
@@ -494,8 +494,9 @@ def notify_nearby_users():
         session.add(notification)
 
     session.commit()
+    nearby_users_names = [user.name for user in nearby_users]
     session.close()
-    return jsonify({'message': 'Notifications sent to nearby users', 'nearby_users': [user.name for user in nearby_users]})
+    return jsonify({'message': 'Notifications sent to nearby users', 'nearby_users': nearby_users_names}), 200
 
 @api.route('/get_notifications/<uid>', methods=['GET'])
 def get_notifications(uid):
