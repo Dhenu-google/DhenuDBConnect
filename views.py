@@ -78,6 +78,9 @@ def add_cow():
     birth_date = data.get('birthDate')  # Birth date in YYYY-MM-DD format
     oauth_id = data.get('owner_id')  # Owner's oauthID from the frontend
     milk_production = data.get('milk_production', 0.0)  # Milk production in liters
+    age = data.get('age', None)  # Age in years (optional)
+    height = data.get('height', None)  # Height in cm (optional)
+    weight = data.get('weight', None)  # Weight in kg (optional)
 
     # Extract optional fields
     tag_number = data.get('tagNumber', None)
@@ -105,7 +108,10 @@ def add_cow():
             owner_id=owner_id,
             work=None,  # Optional field, not provided by the frontend
             tag_number=tag_number,
-            notes=notes
+            notes=notes,
+            age=age,
+            weight=weight,
+            height=height,
         )
 
         # Add the cow to the database
