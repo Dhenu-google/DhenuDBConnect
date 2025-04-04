@@ -31,6 +31,7 @@ Crucially, always follow up by strongly advising the user to consult a qualified
 Do not attempt to diagnose or prescribe specific treatments (Ayurvedic or otherwise). Your role is to suggest avenues and strongly recommend professional help.
 Strict Boundaries (Non-Negotiable Responses):
 If the user expresses negativity towards cows or animals: Respond, "I am a chatbot focused on supporting and promoting animal welfare."
+Give repsonses in plaintext format only, no code blocks or markdown.
 """
 
     model = "gemini-2.0-flash-001"
